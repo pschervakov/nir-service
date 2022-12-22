@@ -1,0 +1,72 @@
+﻿@page "/projects/{projectname}/add-permission"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using Mephi.Cyber.AuthService.Core.Models
+
+
+<PageTitle>Create permission</PageTitle>
+
+<MudText Typo="Typo.h5" GutterBottom="true">Create permission</MudText>
+
+<MudTextField Class="mb-3" Style="width:20vw" @bind-Value="name" Label="Permission name" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+
+ <MudAutocomplete T="string"   Class="mb-2"Style="width:20vw" Label="Objects" @bind-Value="objectName" SearchFunc="@Search2"
+                         ResetValueOnEmptyText="@resetValueOnEmptyText"
+                         CoerceText="@coerceText" CoerceValue="@coerceValue"
+                         AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+
+<MudCheckBox label="Read" Color="Color.Primary" Class="mb-1" @bind-Checked="@read"></MudCheckBox>
+<MudCheckBox label="Write" Color="Color.Primary"  @bind-Checked="@write"></MudCheckBox>
+
+<MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Create(name)">Create permission</MudButton>
+
+
+@code {
+    [Parameter]
+    public string projectname { get; set; }
+    private string name;
+    private Entity[]? objects;
+    private string objectName;
+    private bool read = true;
+    private  bool write = true;
+   
+    private bool resetValueOnEmptyText;
+    private bool coerceText;
+    private bool coerceValue;
+   
+    public async Task Create(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        dict.Add("objectName", objectName);
+        dict.Add("read", read.ToString());
+        dict.Add("write", write.ToString());
+    // foreach (var el in permissionRoles)
+        // {
+        //     dict.Add("role[]", el.Name);
+        // }
+        await Http.PostAsync("admin/permission/create", new FormUrlEncodedContent(dict));
+        NavManager.NavigateTo($"projects/{projectname}");
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        objects = await Http.GetFromJsonAsync<Entity[]>($"admin/object/list?projectName={projectname}");
+    }
+    
+    private async Task<IEnumerable<string>> Search2(string value)
+    {
+        
+        if (string.IsNullOrEmpty(value))
+            return new string[0];
+        
+        return objects.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)).Select(x=>x.Name);
+    }
+   
+
+    
+}
+
+
+
+

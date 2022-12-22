@@ -1,0 +1,130 @@
+﻿@page "/projects/{projectname}"
+@inject HttpClient Http
+@using Mephi.Cyber.AuthService.Core.Models
+<PageTitle>Users</PageTitle>
+
+<MudText Class="mb-5" Typo="Typo.h4" GutterBottom="true"> @projectname</MudText>
+
+<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabPanel Text="Settings">
+
+    </MudTabPanel>
+    <MudTabPanel Text="Permissions">
+        <MudButton Class = "mb-2" Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"><a style="color: white" Href="projects/@projectname/add-permission">Create permission</a></MudButton>
+        <MudTable Items="permissions" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Permission,bool>(FilterFunc1)">
+            <ToolBarContent>
+                <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Permission, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+                <MudTh> Object </MudTh>
+                <MudTh> Read</MudTh>
+                <MudTh> Write</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Class="py-1" DataLabel="Date"><a Href="projects/@context.Name">@context.Name</a> </MudTd>
+                 <MudTd Class="py-1"> @context.EntityId </MudTd>
+                <MudTd Class="py-1"> @context.Read </MudTd>
+                <MudTd Class="py-1"> @context.Write </MudTd>
+                <MudTd Class="py-1">null</MudTd>
+                <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>RemovePermission(context.Name)">Delete</MudButton></MudTd>
+
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+            </PagerContent>
+        </MudTable>
+    </MudTabPanel>
+    <MudTabPanel Text="Objects">
+        <MudButton Class = "mb-2"  Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"><a style="color: white" Href="projects/@projectname/add-object">Create object</a></MudButton>
+        <MudTable Items="entities" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Entity,bool>(FilterFunc1)">
+            <ToolBarContent>
+                <MudTextField @bind-Value="searchString2" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Entity, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Class="py-1" DataLabel="Date">@context.Name </MudTd>
+                <MudTd Class="py-1">null</MudTd>
+                <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>RemoveEntity(context.Name)">Delete</MudButton></MudTd>
+
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+            </PagerContent>
+        </MudTable>
+    </MudTabPanel>
+    @*<MudTabPanel Text="Tab Disabled" Disabled="true">
+            <MudText>Content Disabled</MudText>
+        </MudTabPanel>*@
+</MudTabs>
+
+@code {
+
+    [Parameter]
+    public string projectname { get; set; }
+
+    private Permission[]? permissions;
+
+    public async Task RemovePermission(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        await Http.PostAsync("admin/permission/delete", new FormUrlEncodedContent(dict));
+        permissions = await Http.GetFromJsonAsync<Permission[]>($"admin/permission/list?projectName={projectname}");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        permissions = await Http.GetFromJsonAsync<Permission[]>($"admin/permission/list?projectName={projectname}");
+        entities = await Http.GetFromJsonAsync<Entity[]>($"admin/object/list?projectName={projectname}");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(Permission element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Permission element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private Entity[]? entities;
+
+    public async Task RemoveEntity(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        await Http.PostAsync("admin/object/delete", new FormUrlEncodedContent(dict));
+        entities = await Http.GetFromJsonAsync<Entity[]>($"admin/object/list?projectName={projectname}");
+    }
+    private string searchString2 = "";
+
+    private bool FilterFunc1(Entity element) => FilterFunc(element, searchString2);
+
+    private bool FilterFunc(Entity element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+
+
+}
+
+
+
+

@@ -1,0 +1,75 @@
+﻿@page "/roles/{rolename}"
+@inject HttpClient Http
+@using Mephi.Cyber.AuthService.Core.Models
+<PageTitle>Users</PageTitle>
+
+<MudText Class="mb-5" Typo="Typo.h4" GutterBottom="true"> Role @rolename</MudText>
+
+<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabPanel Text="Settings">
+
+    </MudTabPanel>
+    <MudTabPanel Text="Permissions">
+        <MudButton Class ="mb-2"  Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"><a style="color: white" Href="roles/@rolename/add-permissions">add permissions</a></MudButton>
+        <MudTable Items="permissions" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Permission,bool>(FilterFunc1)">
+            <ToolBarContent>
+                <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Permission, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Class="py-1" DataLabel="Date"><a Href="projects/@context.Name">@context.Name</a> </MudTd>
+                <MudTd Class="py-1">null</MudTd>
+                <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>RemovePermission(context.Name)">Unassign</MudButton></MudTd>
+
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+            </PagerContent>
+        </MudTable>
+    </MudTabPanel>
+    @*<MudTabPanel Text="Tab Disabled" Disabled="true">
+            <MudText>Content Disabled</MudText>
+        </MudTabPanel>*@
+</MudTabs>
+
+@code {
+
+    [Parameter]
+    public string rolename { get; set; }
+
+    private Permission[]? permissions;
+
+    public async Task RemovePermission(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        await Http.PostAsync("admin/permission/delete", new FormUrlEncodedContent(dict));
+        permissions = await Http.GetFromJsonAsync<Permission[]>($"admin/permission/list?rolename={rolename}");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        permissions = await Http.GetFromJsonAsync<Permission[]>($"admin/permission/list?rolename={rolename}");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(Permission element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Permission element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+}
+
+
+
+

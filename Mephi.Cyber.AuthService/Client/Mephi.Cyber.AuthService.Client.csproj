@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Mephi.Cyber.AuthService' ">
+    <ExternalConsole>true</ExternalConsole>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.4" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="6.17.0" />
+    <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Mephi.Cyber.AuthService.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="MudBlazor" />
+    <None Remove="MudBlazor.ThemeManager" />
+    <None Remove="Microsoft.AspNetCore.WebUtilities" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,57 @@
+﻿@page "/projects/add-project"
+@inject HttpClient Http
+@inject IDialogService DialogService
+@inject NavigationManager NavManager
+@using Mephi.Cyber.AuthService.Core.Models
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq
+
+<PageTitle>Create project</PageTitle>
+
+<MudText Typo="Typo.h5" GutterBottom="true">Create project</MudText>
+
+<MudTextField Class="mb-2" Style="width:20vw" @bind-Value="name" Label="Project name" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+
+
+<MudButton Class="mt-2" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Create(name)">Create project</MudButton>
+
+
+@code {
+
+    private string name;
+   
+    public async Task Create(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        // foreach (var el in projectRoles)
+        // {
+        //     dict.Add("role[]", el.Name);
+        // }
+        var  secrets = await Http.PostAsync("admin/project/create", new FormUrlEncodedContent(dict));
+        
+        var parameters = new DialogParameters<DialogUsageExample_Dialog>();
+        
+        dynamic s = JObject.Parse(secrets.Content.ReadAsStringAsync().Result);
+        string authSecret  = s.authSecret;
+        string sharedSecret = s.sharedSecret;
+        parameters.Add(x => x.AuthSecret,  authSecret);
+        parameters.Add(x => x.SharedSecret,  sharedSecret);
+        
+        var options = new DialogOptions() { FullScreen = true};
+       
+        var dialog = await DialogService.ShowAsync<DialogUsageExample_Dialog>("Secrets", parameters, options);
+        await dialog.Result;
+        NavManager.NavigateTo("/projects");
+    }
+
+   
+
+    
+}
+
+
+
+

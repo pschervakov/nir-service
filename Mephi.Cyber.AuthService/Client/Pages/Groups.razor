@@ -1,0 +1,70 @@
+﻿@* @page "/groups" *@
+@* @inject HttpClient Http *@
+@* @using Mephi.Cyber.AuthService.Core *@
+@* @using Mephi.Cyber.AuthService.Core.Models *@
+@* <PageTitle>Groups</PageTitle> *@
+@* *@
+@* <MudText Typo="Typo.h4" GutterBottom="true">Groups</MudText> *@
+@* <MudText Class="mb-5">Groups that you can assign to the users</MudText> *@
+@* <MudButton Class="mb-3" Href="groups/add-group"Variant="Variant.Filled" Color="Color.Primary">Create group</MudButton> *@
+@* @if (groups == null) *@
+@* { *@
+@*     <MudProgressCircular Color="Color.Default" Indeterminate="true" /> *@
+@* } *@
+@* else *@
+@* { *@
+@* <MudTable   Items="groups" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Group,bool>(FilterFunc1)"> *@
+@*     <ToolBarContent> *@
+@*         <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
+@*     </ToolBarContent> *@
+@*     <HeaderContent> *@
+@*         <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Group, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh> *@
+@*         <MudTh>Description</MudTh> *@
+@*         <MudTh></MudTh> *@
+@*     </HeaderContent> *@
+@*     <RowTemplate> *@
+@*         <MudTd Class="py-1" DataLabel="Date"><a Href="roles/@context.Name">@context.Name</a></MudTd> *@
+@*         <MudTd Class="py-1">null</MudTd> *@
+@*         <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Remove(context.Name)">Delete</MudButton></MudTd> *@
+@* *@
+@*     </RowTemplate> *@
+@*     <PagerContent> *@
+@*         <MudTablePager PageSizeOptions="new int[]{50, 100}" /> *@
+@*     </PagerContent> *@
+@* </MudTable> *@
+@* } *@
+@* *@
+@* *@
+@* @code { *@
+@* *@
+@*     private Group[]? groups; *@
+@* *@
+@*     public async Task Remove(string name) *@
+@*     { *@
+@*         var dict = new Dictionary<string, string>(); *@
+@*         dict.Add("name", name); *@
+@*         await Http.PostAsync("admin/group/delete", new FormUrlEncodedContent(dict)); *@
+@*         groups = await Http.GetFromJsonAsync<Group[]>("admin/group/list"); *@
+@*     } *@
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         groups = await Http.GetFromJsonAsync<Group[]>("admin/group/list"); *@
+@*     } *@
+@*     private string searchString1 = ""; *@
+@*     private bool FilterFunc1(Group element) => FilterFunc(element, searchString1); *@
+@* *@
+@*     private bool FilterFunc(Group element, string searchString) *@
+@*     { *@
+@*         if (string.IsNullOrWhiteSpace(searchString)) *@
+@*             return true; *@
+@*         if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) *@
+@*             return true; *@
+@*         if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) *@
+@*             return true; *@
+@*         return false; *@
+@*     } *@
+@* } *@
+@* *@
+@* *@
+@* *@
+@* *@

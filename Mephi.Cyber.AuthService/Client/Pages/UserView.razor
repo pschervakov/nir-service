@@ -1,0 +1,80 @@
+﻿@page "/users/{username}"
+@inject HttpClient Http
+@using Mephi.Cyber.AuthService.Core.Models
+<PageTitle>users</PageTitle>
+
+<MudText Class="mb-5" Typo="Typo.h4" GutterBottom="true">User @username</MudText>
+
+<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabPanel Text="Settings">
+
+    </MudTabPanel>
+    <MudTabPanel Text="Roles">
+        <MudButton Class="mb-2" Href="users/add-Role" Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"><a style="color: white" Href="users/@username/add-roles">add roles</a></MudButton>
+        <MudTable Items="Roles" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Role,bool>(FilterFunc1)">
+            <ToolBarContent>
+                <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Role, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Class="py-1" DataLabel="Date"><a Href="projects/@context.Name">@context.Name</a> </MudTd>
+                <MudTd Class="py-1">null</MudTd>
+                <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Unassign(context.Name)">Unassign</MudButton></MudTd>
+
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+            </PagerContent>
+        </MudTable>
+    </MudTabPanel>
+    @*<MudTabPanel Text="Tab Disabled" Disabled="true">
+            <MudText>Content Disabled</MudText>
+        </MudTabPanel>*@
+</MudTabs>
+
+@code {
+
+    [Parameter]
+    public string username { get; set; }
+
+    private Role[]? Roles;
+
+    public async Task Unassign(string roleName)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("username", username);
+        dict.Add("roleName", roleName);
+        await Http.PostAsync("admin/user/delete_role", new FormUrlEncodedContent(dict));
+        Roles = await Http.GetFromJsonAsync<Role[]>($"admin/role/list?username={username}");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        Roles = await Http.GetFromJsonAsync<Role[]>($"admin/role/list?username={username}");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(Role element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Role element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+
+
+
+
+}
+
+
+
+

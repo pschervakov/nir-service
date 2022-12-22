@@ -1,0 +1,18 @@
+﻿@inherits LayoutComponentBase
+<style>
+    body {
+        background-color: #ebeef5;
+    }
+</style>
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraSmall">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>

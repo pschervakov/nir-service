@@ -1,0 +1,69 @@
+﻿@page "/users"
+@inject HttpClient Http
+@using Mephi.Cyber.AuthService.Core.Models
+<PageTitle>Users</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Users</MudText>
+<MudText Class="mb-5">Users registered in the system</MudText>
+<MudButton Class="mb-3" Href="users/add-user"Variant="Variant.Filled" Color="Color.Primary">Create user</MudButton>
+@if (users == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+<MudTable   Items="users" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<User,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Class="py-1" DataLabel="Date"><a Href="users/@context.Name">@context.Name</a></MudTd>
+        <MudTd Class="py-1">null</MudTd>
+        <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Remove(context.Name)">Delete</MudButton></MudTd>
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+    </PagerContent>
+</MudTable>
+}
+
+
+@code {
+
+    private User[]? users;
+
+    public async Task Remove(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        await Http.PostAsync("admin/user/delete", new FormUrlEncodedContent(dict));
+        users = await Http.GetFromJsonAsync<User[]>("admin/user/list");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Http.GetFromJsonAsync<User[]>("admin/user/list");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(User element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(User element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}
+
+
+
+

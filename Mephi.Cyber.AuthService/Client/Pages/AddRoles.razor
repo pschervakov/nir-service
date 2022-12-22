@@ -1,0 +1,80 @@
+﻿@page "/users/{username}/add-roles"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using Mephi.Cyber.AuthService.Core.Models
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Create role</PageTitle>
+
+<MudText Class = "mb-5" Typo="Typo.h5" GutterBottom="true">Select roles</MudText>
+
+
+
+<MudTable Items="roles" MultiSelection="true" @bind-SelectedItems="userRoles" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Role,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Role, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Class="py-1" DataLabel="Date">@context.Name </MudTd>
+        <MudTd Class="py-1">null</MudTd>
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+    </PagerContent>
+</MudTable>
+
+<MudButton Class="mt-3" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Add(name)">Add roles</MudButton>
+
+@code {
+
+    private string name;
+    [Parameter]
+    public string username { get; set; }
+    
+    private Role[]? roles;
+    private HashSet<Role>? userRoles;
+
+    public async Task Add(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("username", username);
+        foreach (var el in userRoles)
+        {
+            dict.Add("roles[]", el.Name);
+            }
+        
+        await Http.PostAsync("admin/user/add_roles", new FormUrlEncodedContent(dict));
+        NavManager.NavigateTo($"/users/{username}");
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        roles = await Http.GetFromJsonAsync<Role[]>("admin/role/list");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(Role element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Role element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+}
+
+
+
+

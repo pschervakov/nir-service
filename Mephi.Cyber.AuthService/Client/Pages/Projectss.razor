@@ -1,0 +1,69 @@
+﻿@page "/projects"
+@inject HttpClient Http
+@using Mephi.Cyber.AuthService.Core.Models
+<PageTitle>projects</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Projects</MudText>
+<MudText Class="mb-5">Projects that registered with the service</MudText>
+<MudButton Class="mb-3" Href="/projects/add-project" Variant="Variant.Filled" Color="Color.Primary">Create project</MudButton>
+@if (forecasts == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="forecasts" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Project,bool>(FilterFunc1)">
+        <ToolBarContent>
+            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Project, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd  Class="py-1" DataLabel="Date"><a Href="projects/@context.Name">@context.Name</a> </MudTd>
+            <MudTd Class="py-1">null</MudTd>
+            <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Remove(context.Name)">Delete</MudButton></MudTd>
+
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+        </PagerContent>
+    </MudTable>
+}
+
+
+@code {
+
+    private Project[]? forecasts;
+
+    public async Task Remove(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        await Http.PostAsync("admin/project/delete", new FormUrlEncodedContent(dict));
+        forecasts = await Http.GetFromJsonAsync<Project[]>("admin/project/list");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await Http.GetFromJsonAsync<Project[]>("admin/project/list");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(Mephi.Cyber.AuthService.Core.Models.Project element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Mephi.Cyber.AuthService.Core.Models.Project element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}
+
+
+
+

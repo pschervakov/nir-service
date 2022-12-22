@@ -1,0 +1,61 @@
+﻿
+@using Mephi.Cyber.AuthService.Core.Models
+<MudTable Items="Objs" MultiSelection="true" @bind-SelectedItems="Value" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Role, bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Roles</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Role, object>(x => x.Name)">Name</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Class="py-1" DataLabel="Date">@context.Name </MudTd>
+        <MudTd Class="py-1">null</MudTd>
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[] { 50, 100 }"/>
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter]
+    public HashSet<Role> SelectedItems { get; set; }
+    
+    [Parameter]
+    public Role[]? Objs { get; set; }
+    
+    private HashSet<Role>? Value
+    {
+        get => SelectedItems;
+        set
+        {
+            Console.WriteLine(value?.Count);
+           
+            SelectedItemsChanged.InvokeAsync(value);
+        }
+    }
+
+    [Parameter]
+    public EventCallback<HashSet<Role>> SelectedItemsChanged { get; set; } 
+    
+    private string searchString1 = "";
+    private bool FilterFunc1(Role element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Role element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}
+
+
+
+

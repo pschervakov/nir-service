@@ -1,0 +1,52 @@
+﻿@page "/users/add-user"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using Mephi.Cyber.AuthService.Core.Models
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using Mephi.Cyber.AuthService.Core.Utils
+
+<PageTitle>Create user</PageTitle>
+
+<MudText Typo="Typo.h5" GutterBottom="true">Create user</MudText> 
+
+<MudTextField Class="mb-4" Style="width:20vw" @bind-Value="name" Label="User name" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+
+<MudTextField Class="mb-4" Style="width:20vw"  @bind-Value="password" Label="password" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+
+<RoleTable @bind-SelectedItems="UserRoles" Objs="@Roles" />
+
+<MudButton Class="mt-2" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Create(name)">Create user</MudButton>
+
+
+@code {
+
+    private string name;
+    private string password;
+    private Role[]? Roles;
+    public HashSet<Role> UserRoles = new();
+    public async Task Create(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("username", name);
+        dict.Add("password", password);
+        foreach (var el in UserRoles)
+        {
+            dict.Add("roles[]", el.Name);
+        }
+        var pass = await Http.PostAsync("admin/user/create", new FormUrlEncodedContent(dict));
+        NavManager.NavigateTo("/users");
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Roles = await Http.GetFromJsonAsync<Role[]>("admin/role/list");
+        password = RandomPasswordGenerator.GeneratePassword(passwordSize: 15);
+    }
+    
+}
+
+
+
+

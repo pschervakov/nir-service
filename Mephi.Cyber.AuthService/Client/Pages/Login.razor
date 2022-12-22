@@ -1,0 +1,87 @@
+﻿@layout LoginLayout
+@inject HttpClient Http
+@page "/login"
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Net
+
+
+@inject NavigationManager NavManager
+<MudText Typo="Typo.h3" GutterBottom="true"></MudText>
+<MudGrid>
+    <MudItem xs="12" sm="16">
+        <MudPaper Class="pa-4">
+            <MudForm>
+                <MudTextField T="string" Variant="Variant.Outlined" Label="Username" @bind-Value="username" />
+                <MudTextField Class="mb-5" T="string" Variant="Variant.Outlined" Label="Password" @bind-Value="password"
+                              InputType="InputType.Password" />
+
+                <div class="d-flex align-center justify-space-between">
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" DisableElevation="true"  @onclick="() => Validate()">Sign in </MudButton>
+                    <MudText> or </MudText>
+                    <MudButton Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" @onclick="() => redirectToMephi()">Sign in using MEPHI</MudButton>
+                </div>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private string username;
+    private string password;
+    private string redirectUri;
+    private string projectName;
+    public string redUri;
+    protected override void OnInitialized()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("redirectUri", out var _redirectUri))
+        {
+            redirectUri = _redirectUri;
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("projectName", out var _projectName))
+        {
+            projectName = _projectName;
+        }
+        
+
+    }
+    public void redirectToMephi()
+    {
+        var base_uri = $"{NavManager.BaseUri.ToString()}mephi_login/";
+        redUri = $"{base_uri}?redirectUri={redirectUri}&projectName={projectName}";
+        
+        // FIXME should be configuration parameter
+        NavManager.NavigateTo($"https://auth.mephi.ru/login?service={WebUtility.UrlEncode(redUri)}");
+    }
+
+    // public void redirectToOidc()
+    // {
+    //     var nonce = "325qjlalf09230";
+    //     var client_id = "dotnet";
+    //     var base_uri = $"{NavManager.BaseUri.ToString()}oidc_login/";
+    //     redUri = $"{base_uri}?redirect_uri={redirectUri}&project_name={projectName}";
+    //     var uri = $"https://159.89.6.123:8080/realms/myrealm/protocol/openid-connect/auth?client_id={client_id}&scope=openid&response_type=id_token&nonce={nonce}&redirect_uri={WebUtility.UrlEncode(redUri)}";
+    //     NavManager.NavigateTo(uri);
+    // }
+
+
+    public async void Validate()
+    {    var dict = new Dictionary<string, string>();
+        dict.Add("username", username);
+        dict.Add("password", password);
+        dict.Add("projectName", projectName);;
+        var response = await Http.PostAsync("login", new FormUrlEncodedContent(dict));
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            return;
+        }
+        var token = await response.Content.ReadAsStringAsync();
+        
+        NavManager.NavigateTo($"{redirectUri}/?token={token}");
+        
+    }
+}

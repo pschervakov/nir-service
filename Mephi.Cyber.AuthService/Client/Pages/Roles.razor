@@ -1,0 +1,69 @@
+﻿@page "/roles"
+@inject HttpClient Http
+@using Mephi.Cyber.AuthService.Core.Models
+<PageTitle>Roles</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Roles</MudText>
+<MudText Class="mb-5">Roles that you can assign to the users</MudText>
+<MudButton Class="mb-3" Href="roles/add-role"Variant="Variant.Filled" Color="Color.Primary">Create role</MudButton>
+@if (roles == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+<MudTable   Items="roles" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Role,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Role, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Class="py-1" DataLabel="Date"><a Href="roles/@context.Name">@context.Name</a></MudTd>
+        <MudTd Class="py-1">null</MudTd>
+        <MudTd Class="py-2"><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Remove(context.Name)">Delete</MudButton></MudTd>
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+    </PagerContent>
+</MudTable>
+}
+
+
+@code {
+
+    private Role[]? roles;
+
+    public async Task Remove(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("name", name);
+        await Http.PostAsync("admin/role/delete", new FormUrlEncodedContent(dict));
+        roles = await Http.GetFromJsonAsync<Role[]>("admin/role/list");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        roles = await Http.GetFromJsonAsync<Role[]>("admin/role/list");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(Role element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Role element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}
+
+
+
+

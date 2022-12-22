@@ -1,0 +1,82 @@
+﻿@page "/roles/{rolename}/add-permissions"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+@using Mephi.Cyber.AuthService.Core.Models
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Create role</PageTitle>
+
+<MudText Class = "mb-5" Typo="Typo.h5" GutterBottom="true">Select permissions</MudText>
+
+
+
+<MudTable Items="permissions" MultiSelection="true" @bind-SelectedItems="rolePermissions" Hover="true" SortLabel="Sort By" Elevation="0" Filter="new Func<Permission,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Permission, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Class="py-1" DataLabel="Date">@context.Name </MudTd>
+        <MudTd Class="py-1">null</MudTd>
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+    </PagerContent>
+</MudTable>
+
+<MudButton Class="mt-3" Variant="Variant.Filled" Color="Color.Primary" @onclick="() =>Add(name)">Add permissions</MudButton>
+
+@code {
+
+    private string name;
+    [Parameter]
+    public string rolename { get; set; }
+    
+    private Permission[]? permissions;
+    private HashSet<Permission>? rolePermissions;
+
+    public async Task Add(string name)
+    {
+        var dict = new Dictionary<string, string>();
+        dict.Add("roleName", rolename);
+        foreach (var el in rolePermissions)
+        {
+            dict.Add("permissions[]", el.Name);
+            }
+
+
+        await Http.PostAsync("admin/role/add_permissions", new FormUrlEncodedContent(dict));
+        NavManager.NavigateTo($"/roles/{rolename}");
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        permissions = await Http.GetFromJsonAsync<Permission[]>("admin/permission/list");
+    }
+    private string searchString1 = "";
+    private bool FilterFunc1(Permission element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Permission element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+}
+
+
+
+
